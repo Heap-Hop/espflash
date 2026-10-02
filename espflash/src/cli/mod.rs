@@ -450,6 +450,8 @@ pub fn connect(
         _ => unreachable!(),
     };
 
+    #[cfg(feature = "custom-transport")]
+    let serial_port: crate::connection::Port = Box::new(serial_port);
     let connection = Connection::new(
         *Box::new(serial_port),
         port_info,
@@ -732,6 +734,8 @@ pub fn serial_monitor(args: MonitorArgs, config: &Config) -> Result<()> {
             .map_err(Error::from)
             .wrap_err_with(|| format!("Failed to reopen serial port {port_name}"))?;
         monitor_args.no_reset = true;
+        #[cfg(feature = "custom-transport")]
+        let serial: crate::connection::Port = Box::new(serial);
         return monitor(
             serial,
             elf_refs,

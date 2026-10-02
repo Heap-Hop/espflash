@@ -16,7 +16,9 @@ use std::{
 use log::{debug, info};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use serialport::{SerialPort, UsbPortInfo};
+#[cfg(not(feature = "custom-transport"))]
+use serialport::SerialPort;
+use serialport::UsbPortInfo;
 use slip_codec::SlipDecoder;
 
 #[cfg(unix)]
@@ -48,12 +50,20 @@ const MAX_CONNECT_ATTEMPTS: usize = 7;
 const MAX_SYNC_ATTEMPTS: usize = 5;
 const USB_SERIAL_JTAG_PID: u16 = 0x1001;
 
-#[cfg(unix)]
+#[cfg(all(unix, not(feature = "custom-transport")))]
 /// Alias for the serial TTYPort.
 pub type Port = serialport::TTYPort;
-#[cfg(windows)]
+#[cfg(all(windows, not(feature = "custom-transport")))]
 /// Alias for the serial COMPort.
 pub type Port = serialport::COMPort;
+
+#[cfg(feature = "custom-transport")]
+mod transport;
+#[cfg(feature = "custom-transport")]
+pub use transport::Transport;
+/// Owned injected serial transport; no OS TTY is required.
+#[cfg(feature = "custom-transport")]
+pub type Port = Box<dyn Transport>;
 
 /// Security Info Response containing chip security information
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]

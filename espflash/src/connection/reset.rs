@@ -5,14 +5,15 @@
 // Most of this module is copied from `esptool.py`:
 // https://github.com/espressif/esptool/blob/a8586d0/esptool/reset.py
 
-#[cfg(unix)]
+#[cfg(all(unix, not(feature = "custom-transport")))]
 use std::{io, os::fd::AsRawFd};
 use std::{thread::sleep, time::Duration};
 
-#[cfg(unix)]
+#[cfg(all(unix, not(feature = "custom-transport")))]
 use libc::ioctl;
 use log::debug;
 use serde::{Deserialize, Serialize};
+#[cfg(not(feature = "custom-transport"))]
 use serialport::SerialPort;
 use strum::{Display, EnumIter, EnumString, VariantNames};
 
@@ -44,7 +45,13 @@ pub trait ResetStrategy {
         Ok(())
     }
 
-    #[cfg(unix)]
+    #[cfg(all(unix, feature = "custom-transport"))]
+    fn set_dtr_rts(&self, serial_port: &mut Port, dtr: bool, rts: bool) -> Result<(), Error> {
+        serial_port.set_dtr_rts(dtr, rts)?;
+        Ok(())
+    }
+
+    #[cfg(all(unix, not(feature = "custom-transport")))]
     fn set_dtr_rts(
         &self,
         serial_port: &mut Port,

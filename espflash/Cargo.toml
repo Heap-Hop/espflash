@@ -68,6 +68,8 @@ libc = "0.2.174"
 nix = { version = "0.31", features = ["signal", "time"] }
 
 [features]
+# Library transport injection (USB host adapters, including Android).
+custom-transport = ["serialport"]
 default = ["cli"]
 cli = [
     "dep:addr2line",
